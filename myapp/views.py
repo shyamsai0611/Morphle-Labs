@@ -1,25 +1,22 @@
 from django.http import HttpResponse
 from django.utils.timezone import datetime
-import os
 import pytz
-import psutil
+import subprocess
 
 def htop_view(request):
-    # Define the data
-    name = "K. Shyam Sai Manohar"  # Replace with your full name
-    username = os.getlogin()  # Get system username
-    ist = pytz.timezone('Asia/Kolkata')  # Define IST timezone
-    server_time = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")  # Get server time in IST
+    
+    name = "K. Shyam Sai Manohar"  
+    username = "Shyam Sai"
+    ist = pytz.timezone('Asia/Kolkata')  
+    server_time = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")  
 
-    # Get the system stats using psutil
-    top_output = []
-    for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
-        top_output.append(f"{proc.info['pid']:>6} {proc.info['name']:<20} {proc.info['cpu_percent']:>5} % {proc.info['memory_percent']:>5.2f} %")
+    
+    try:
+        top_output = subprocess.check_output("top -b -n 1", shell=True, text=True)
+    except subprocess.CalledProcessError as e:
+        top_output = "Could not retrieve `top` output."
 
-    # Format the output similar to `top`
-    top_output = "\n".join(top_output)
-
-    # Generate HTML response
+    
     html_content = f"""
     <html>
         <body>
@@ -28,7 +25,7 @@ def htop_view(request):
             <p><strong>Username:</strong> {username}</p>
             <p><strong>Server Time (IST):</strong> {server_time}</p>
             <h3>Top Command Output:</h3>
-            <pre>PID     Name                 CPU %    Memory %\n{top_output}</pre>
+            <pre>{top_output}</pre>
         </body>
     </html>
     """
